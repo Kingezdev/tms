@@ -4,7 +4,7 @@ services:
     name: tms-traffic
     env: python
     plan: free
-    buildCommand: "python build.sh"
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
     startCommand: "gunicorn tms.wsgi:application"
     autoDeploy: true
     
