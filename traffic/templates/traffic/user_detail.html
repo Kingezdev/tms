@@ -1,0 +1,81 @@
+{% extends 'traffic/base.html' %}
+{% block title %}User: {{ target_user.get_full_name }} — PSU TMS{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">{{ target_user.get_full_name|default:target_user.username }}</div>
+    <div class="page-sub">User Account Details</div>
+  </div>
+  <a href="{% url 'user_list' %}" class="btn btn-outline">← Back</a>
+</div>
+
+<div class="card-grid-2">
+  <div class="card mb-0">
+    <div class="card-title">Account Information</div>
+    <div class="detail-row"><span class="detail-label">Full Name</span><span class="detail-value">{{ target_user.get_full_name }}</span></div>
+    <div class="detail-row"><span class="detail-label">Username</span><span class="detail-value">{{ target_user.username }}</span></div>
+    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">{{ target_user.email }}</span></div>
+    {% if profile %}
+    <div class="detail-row"><span class="detail-label">Role</span><span class="detail-value"><span class="badge badge-primary">{{ profile.get_role_display }}</span></span></div>
+    <div class="detail-row"><span class="detail-label">Department</span><span class="detail-value">{{ profile.department|default:"—" }}</span></div>
+    <div class="detail-row"><span class="detail-label">ID / Matric</span><span class="detail-value mono" style="font-size:12px;">{{ profile.matric_or_staff_id|default:"—" }}</span></div>
+    <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value">{{ profile.phone|default:"—" }}</span></div>
+    {% endif %}
+    <div class="detail-row">
+      <span class="detail-label">Account Status</span>
+      <span class="detail-value">
+        {% if target_user.is_active %}
+        <span class="badge badge-success">Active</span>
+        {% else %}
+        <span class="badge badge-danger">Suspended</span>
+        {% endif %}
+      </span>
+    </div>
+    <div class="detail-row"><span class="detail-label">Joined</span><span class="detail-value text-muted">{{ target_user.date_joined|date:"d M Y" }}</span></div>
+
+    {% if target_user != request.user %}
+    <div style="margin-top:16px;">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="toggle_active">
+        <button type="submit" class="btn {% if target_user.is_active %}btn-danger{% else %}btn-success{% endif %} btn-sm">
+          {% if target_user.is_active %}Suspend User{% else %}Activate User{% endif %}
+        </button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="card mb-0" style="margin-bottom:16px;">
+      <div class="card-title">Registered Vehicles ({{ vehicles.count }})</div>
+      {% for v in vehicles %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f2f4f8;">
+        <div>
+          <span class="mono">{{ v.plate_number }}</span>
+          <span class="text-sm text-muted" style="margin-left:8px;">{{ v.make }} {{ v.model }}</span>
+        </div>
+        <span class="badge {% if v.status == 'active' %}badge-success{% elif v.status == 'pending' %}badge-warning{% else %}badge-danger{% endif %}">{{ v.get_status_display }}</span>
+      </div>
+      {% empty %}
+      <div class="text-muted text-sm" style="padding:8px 0;">No vehicles registered.</div>
+      {% endfor %}
+    </div>
+
+    <div class="card mb-0">
+      <div class="card-title">Incident Reports ({{ incidents.count }})</div>
+      {% for inc in incidents %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f2f4f8;">
+        <div>
+          <span style="font-size:13px;font-weight:500;">#{{ inc.pk }} {{ inc.get_incident_type_display }}</span>
+          <div class="text-sm text-muted">{{ inc.get_location_display }} · {{ inc.reported_at|date:"d M Y" }}</div>
+        </div>
+        <span class="badge {% if inc.status == 'open' %}badge-danger{% elif inc.status == 'pending' %}badge-warning{% else %}badge-success{% endif %}">{{ inc.get_status_display }}</span>
+      </div>
+      {% empty %}
+      <div class="text-muted text-sm" style="padding:8px 0;">No incidents reported.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

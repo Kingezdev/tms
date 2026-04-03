@@ -1,0 +1,75 @@
+{% extends 'traffic/base.html' %}
+{% block title %}Report Incident — PSU TMS{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Report Traffic Incident</div>
+    <div class="page-sub">Submit a report for any traffic issue within the campus</div>
+  </div>
+  <a href="{% url 'incident_list' %}" class="btn btn-outline">← Back</a>
+</div>
+
+<div class="card" style="max-width:680px;">
+  <div class="card-title">Incident Details</div>
+  <div class="alert alert-warning">Please provide accurate information. False reports may lead to account suspension.</div>
+
+  <form method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Incident Type *</label>
+        <select name="incident_type" class="form-control {% if form.incident_type.errors %}is-invalid{% endif %}">
+          <option value="">— Select Type —</option>
+          {% for val, label in form.fields.incident_type.choices %}
+          {% if val %}<option value="{{ val }}" {% if form.incident_type.value == val %}selected{% endif %}>{{ label }}</option>{% endif %}
+          {% endfor %}
+        </select>
+        {% for e in form.incident_type.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Location *</label>
+        <select name="location" class="form-control {% if form.location.errors %}is-invalid{% endif %}">
+          <option value="">— Select Location —</option>
+          {% for val, label in form.fields.location.choices %}
+          {% if val %}<option value="{{ val }}" {% if form.location.value == val %}selected{% endif %}>{{ label }}</option>{% endif %}
+          {% endfor %}
+        </select>
+        {% for e in form.location.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Priority Level *</label>
+      <select name="priority" class="form-control">
+        {% for val, label in form.fields.priority.choices %}
+        <option value="{{ val }}" {% if form.priority.value == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Description *</label>
+      <textarea name="description" class="form-control {% if form.description.errors %}is-invalid{% endif %}"
+        placeholder="Describe the incident in detail — what happened, how severe, number of vehicles involved...">{{ form.description.value|default:'' }}</textarea>
+      {% for e in form.description.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Vehicle Plate Number (if applicable)</label>
+      <input type="text" name="vehicle_plate" class="form-control"
+        value="{{ form.vehicle_plate.value|default:'' }}" placeholder="e.g. ABC-123-XY">
+      <div class="form-note">Enter the plate number of any vehicle involved, if known.</div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Submit Report</button>
+      <a href="{% url 'incident_list' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

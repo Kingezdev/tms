@@ -1,0 +1,73 @@
+{% extends 'traffic/base.html' %}
+{% block title %}Vehicle {{ vehicle.plate_number }} — PSU TMS{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Vehicle: <span class="mono">{{ vehicle.plate_number }}</span></div>
+    <div class="page-sub">{{ vehicle.make }} {{ vehicle.model }} · {{ vehicle.color }}</div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    {% if vehicle.owner == request.user %}
+    <a href="{% url 'vehicle_edit' vehicle.pk %}" class="btn btn-outline">Edit</a>
+    {% endif %}
+    <a href="{% url 'vehicle_list' %}" class="btn btn-outline">← Back</a>
+  </div>
+</div>
+
+<div class="card-grid-2">
+  <div class="card mb-0">
+    <div class="card-title">Vehicle Information</div>
+    <div class="detail-row"><span class="detail-label">Plate Number</span><span class="detail-value mono">{{ vehicle.plate_number }}</span></div>
+    <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">{{ vehicle.get_vehicle_type_display }}</span></div>
+    <div class="detail-row"><span class="detail-label">Make</span><span class="detail-value">{{ vehicle.make }}</span></div>
+    <div class="detail-row"><span class="detail-label">Model</span><span class="detail-value">{{ vehicle.model|default:"—" }}</span></div>
+    <div class="detail-row"><span class="detail-label">Color</span><span class="detail-value">{{ vehicle.color }}</span></div>
+    <div class="detail-row"><span class="detail-label">Year</span><span class="detail-value">{{ vehicle.year|default:"—" }}</span></div>
+    <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">{{ vehicle.get_category_display }}</span></div>
+    <div class="detail-row">
+      <span class="detail-label">Status</span>
+      <span class="detail-value">
+        <span class="badge {% if vehicle.status == 'active' %}badge-success{% elif vehicle.status == 'pending' %}badge-warning{% else %}badge-danger{% endif %}">
+          {{ vehicle.get_status_display }}
+        </span>
+      </span>
+    </div>
+    <div class="detail-row"><span class="detail-label">Registered</span><span class="detail-value text-muted">{{ vehicle.registered_at|date:"d M Y, H:i" }}</span></div>
+    {% if vehicle.notes %}
+    <div class="detail-row"><span class="detail-label">Notes</span><span class="detail-value">{{ vehicle.notes }}</span></div>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="card mb-0" style="margin-bottom:16px;">
+      <div class="card-title">Owner Information</div>
+      <div class="detail-row"><span class="detail-label">Full Name</span><span class="detail-value">{{ vehicle.owner.get_full_name }}</span></div>
+      <div class="detail-row"><span class="detail-label">Username</span><span class="detail-value">{{ vehicle.owner.username }}</span></div>
+      <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">{{ vehicle.owner.email }}</span></div>
+      {% if vehicle.owner.profile %}
+      <div class="detail-row"><span class="detail-label">Role</span><span class="detail-value">{{ vehicle.owner.profile.get_role_display }}</span></div>
+      <div class="detail-row"><span class="detail-label">Department</span><span class="detail-value">{{ vehicle.owner.profile.department|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">ID / Matric</span><span class="detail-value">{{ vehicle.owner.profile.matric_or_staff_id|default:"—" }}</span></div>
+      {% endif %}
+    </div>
+
+    {% if is_admin %}
+    <div class="card mb-0">
+      <div class="card-title">Update Status</div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select name="status" class="form-control">
+            {% for val, label in vehicle.STATUS_CHOICES %}
+            <option value="{{ val }}" {% if vehicle.status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Status</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

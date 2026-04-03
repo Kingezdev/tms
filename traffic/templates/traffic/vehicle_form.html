@@ -1,0 +1,92 @@
+{% extends 'traffic/base.html' %}
+{% block title %}{{ title }} — PSU TMS{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">{{ title }}</div>
+    <div class="page-sub">Fill in the vehicle details below. Registration is subject to admin approval.</div>
+  </div>
+  <a href="{% url 'vehicle_list' %}" class="btn btn-outline">← Back</a>
+</div>
+
+<div class="card" style="max-width:700px;">
+  <div class="card-title">Vehicle Details</div>
+  <div class="alert alert-info">Fields marked <strong>*</strong> are required. Your vehicle will be set to <strong>Pending</strong> until approved by an administrator.</div>
+
+  <form method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Plate Number *</label>
+        <input type="text" name="plate_number" class="form-control {% if form.plate_number.errors %}is-invalid{% endif %}"
+          value="{{ form.plate_number.value|default:'' }}" placeholder="e.g. ABC-123-XY" required>
+        {% for e in form.plate_number.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        <div class="form-note">Enter the number exactly as on the vehicle.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Vehicle Type *</label>
+        <select name="vehicle_type" class="form-control {% if form.vehicle_type.errors %}is-invalid{% endif %}">
+          <option value="">— Select Type —</option>
+          {% for val, label in form.fields.vehicle_type.choices %}
+          {% if val %}<option value="{{ val }}" {% if form.vehicle_type.value == val %}selected{% endif %}>{{ label }}</option>{% endif %}
+          {% endfor %}
+        </select>
+        {% for e in form.vehicle_type.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Make / Brand *</label>
+        <input type="text" name="make" class="form-control {% if form.make.errors %}is-invalid{% endif %}"
+          value="{{ form.make.value|default:'' }}" placeholder="e.g. Toyota, Honda" required>
+        {% for e in form.make.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Model</label>
+        <input type="text" name="model" class="form-control" value="{{ form.model.value|default:'' }}" placeholder="e.g. Corolla, Civic">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Color *</label>
+        <input type="text" name="color" class="form-control {% if form.color.errors %}is-invalid{% endif %}"
+          value="{{ form.color.value|default:'' }}" placeholder="e.g. Silver, Black" required>
+        {% for e in form.color.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Year of Manufacture</label>
+        <input type="number" name="year" class="form-control" value="{{ form.year.value|default:'' }}"
+          placeholder="e.g. 2019" min="1980" max="2026">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Owner Category *</label>
+      <select name="category" class="form-control {% if form.category.errors %}is-invalid{% endif %}">
+        <option value="">— Select Category —</option>
+        {% for val, label in form.fields.category.choices %}
+        {% if val %}<option value="{{ val }}" {% if form.category.value == val %}selected{% endif %}>{{ label }}</option>{% endif %}
+        {% endfor %}
+      </select>
+      {% for e in form.category.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Additional Notes</label>
+      <textarea name="notes" class="form-control" placeholder="Any additional information about the vehicle...">{{ form.notes.value|default:'' }}</textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{% if vehicle %}Update Vehicle{% else %}Submit Registration{% endif %}</button>
+      <a href="{% url 'vehicle_list' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

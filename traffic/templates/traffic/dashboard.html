@@ -1,0 +1,176 @@
+{% extends 'traffic/base.html' %}
+{% block title %}Dashboard — PSU TMS{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Welcome back, {{ request.user.first_name }} — Plateau State University, Bokkos</div>
+  </div>
+  <a href="{% url 'incident_report' %}" class="btn btn-primary">+ Report Incident</a>
+</div>
+
+<!-- Stat Cards -->
+<div class="stat-grid">
+  {% if is_admin %}
+  <div class="stat-card">
+    <div class="stat-icon">🚗</div>
+    <div class="stat-label">Registered Vehicles</div>
+    <div class="stat-value">{{ total_vehicles }}</div>
+    <div class="stat-sub">Total in system</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">⚠️</div>
+    <div class="stat-label">Active Incidents</div>
+    <div class="stat-value" style="color:var(--danger);">{{ active_incidents }}</div>
+    <div class="stat-sub">Open &amp; pending</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">✅</div>
+    <div class="stat-label">Resolved Reports</div>
+    <div class="stat-value" style="color:var(--success);">{{ resolved_incidents }}</div>
+    <div class="stat-sub">All time</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">👤</div>
+    <div class="stat-label">Registered Users</div>
+    <div class="stat-value">{{ total_users }}</div>
+    <div class="stat-sub">Total accounts</div>
+  </div>
+  {% else %}
+  <div class="stat-card">
+    <div class="stat-icon">🚗</div>
+    <div class="stat-label">My Vehicles</div>
+    <div class="stat-value">{{ my_vehicle_count }}</div>
+    <div class="stat-sub">Total registered</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">⏳</div>
+    <div class="stat-label">My Pending Vehicles</div>
+    <div class="stat-value" style="color:var(--warning);">{{ my_vehicle_pending }}</div>
+    <div class="stat-sub">Waiting approval</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">⚠️</div>
+    <div class="stat-label">My Open Incidents</div>
+    <div class="stat-value" style="color:var(--danger);">{{ my_incident_open }}</div>
+    <div class="stat-sub">Unresolved</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">✅</div>
+    <div class="stat-label">My Resolved Reports</div>
+    <div class="stat-value" style="color:var(--success);">{{ my_incident_resolved }}</div>
+    <div class="stat-sub">Closed</div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card-grid-2">
+  <!-- Recent Incidents -->
+  <div class="card mb-0">
+    <div class="card-title">
+      Recent Incidents
+      <a href="{% url 'incident_list' %}" class="btn btn-outline btn-sm">View all</a>
+    </div>
+    {% if recent_incidents %}
+      {% for inc in recent_incidents %}
+      <div style="padding:10px 0;border-bottom:1px solid #f2f4f8;display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:9px;height:9px;border-radius:50%;margin-top:5px;flex-shrink:0;
+          background:{% if inc.status == 'open' %}var(--danger){% elif inc.status == 'pending' %}#e0a000{% else %}var(--success){% endif %};"></div>
+        <div style="flex:1;">
+          <div style="font-size:13.5px;font-weight:500;">{{ inc.get_incident_type_display }} — {{ inc.get_location_display }}</div>
+          <div class="text-sm text-muted">{{ inc.reported_by.get_full_name }} · {{ inc.reported_at|date:"d M Y, H:i" }}</div>
+        </div>
+        <span class="badge {% if inc.status == 'open' %}badge-danger{% elif inc.status == 'pending' %}badge-warning{% else %}badge-success{% endif %}">
+          {{ inc.get_status_display }}
+        </span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state" style="padding:24px;">
+        <div class="empty-state-icon">📋</div>
+        <p>No incidents reported yet.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Admin Action Log -->
+  <div class="card mb-0">
+    <div class="card-title">
+      {% if is_admin %}Admin Action Log{% else %}My Vehicles{% endif %}
+    </div>
+    {% if is_admin %}
+      {% if recent_actions %}
+        <ul class="timeline">
+          {% for act in recent_actions %}
+          <li class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-time">{{ act.performed_at|date:"H:i" }}</div>
+            <div>
+              <div class="tl-title">{{ act.get_action_display }}</div>
+              <div class="tl-sub">{{ act.description|truncatechars:60 }} — {{ act.admin.get_full_name }}</div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-state" style="padding:24px;"><p>No admin actions recorded yet.</p></div>
+      {% endif %}
+    {% else %}
+      {% if my_vehicles %}
+        {% for v in my_vehicles %}
+        <div style="padding:10px 0;border-bottom:1px solid #f2f4f8;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div class="mono">{{ v.plate_number }}</div>
+            <div class="text-sm text-muted">{{ v.make }} {{ v.model }} · {{ v.color }}</div>
+          </div>
+          <span class="badge {% if v.status == 'active' %}badge-success{% elif v.status == 'pending' %}badge-warning{% else %}badge-danger{% endif %}">
+            {{ v.get_status_display }}
+          </span>
+        </div>
+        {% endfor %}
+        <div style="margin-top:12px;">
+          <a href="{% url 'vehicle_list' %}" class="btn btn-outline btn-sm">View all my vehicles</a>
+        </div>
+      {% else %}
+        <div class="empty-state" style="padding:24px;">
+          <div class="empty-state-icon">🚗</div>
+          <p>You have no registered vehicles.</p>
+          <a href="{% url 'vehicle_register' %}" class="btn btn-primary btn-sm" style="margin-top:10px;">Register a Vehicle</a>
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<!-- My Recent Incident Reports (non-admin) -->
+{% if not is_admin %}
+<div class="card" style="margin-top:20px;">
+  <div class="card-title">
+    My Recent Reports
+    <a href="{% url 'incident_report' %}" class="btn btn-primary btn-sm">+ New Report</a>
+  </div>
+  {% if my_incidents %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Type</th><th>Location</th><th>Priority</th><th>Date</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for inc in my_incidents %}
+        <tr>
+          <td class="text-muted text-sm">#{{ inc.pk }}</td>
+          <td>{{ inc.get_incident_type_display }}</td>
+          <td>{{ inc.get_location_display }}</td>
+          <td><span class="badge {% if inc.priority == 'emergency' %}badge-danger{% elif inc.priority == 'high' %}badge-warning{% else %}badge-gray{% endif %}">{{ inc.get_priority_display }}</span></td>
+          <td class="text-sm text-muted">{{ inc.reported_at|date:"d M Y" }}</td>
+          <td><span class="badge {% if inc.status == 'open' %}badge-danger{% elif inc.status == 'pending' %}badge-warning{% else %}badge-success{% endif %}">{{ inc.get_status_display }}</span></td>
+          <td><a href="{% url 'incident_detail' inc.pk %}" class="btn btn-outline btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><p>You have not submitted any reports yet.</p></div>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

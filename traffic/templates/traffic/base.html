@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}PSU Traffic Management System{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'traffic/css/style.css' %}">
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon">TMS</div>
+    <div class="brand-text">
+      <span class="brand-name">PLASU Traffic Management</span>
+      <span class="brand-sub">Plateau State University, Bokkos</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    {% if user.is_authenticated %}
+    <div class="user-chip">
+      <div class="user-avatar">{{ user.first_name|first }}{{ user.last_name|first }}</div>
+      {{ user.get_full_name }}
+      {% if user.profile %}
+      <span class="role-pill">{{ user.profile.get_role_display|upper }}</span>
+      {% endif %}
+    </div>
+    <form method="post" action="{% url 'logout' %}" style="margin:0;">
+      {% csrf_token %}
+      <button type="submit" class="topbar-logout">Logout</button>
+    </form>
+    {% endif %}
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+{% if user.is_authenticated %}
+<nav class="sidebar">
+  <div class="sidebar-section">Overview</div>
+  <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zm10 0a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+    Dashboard
+  </a>
+
+  <div class="sidebar-section">Traffic</div>
+  <a href="{% url 'incident_list' %}" class="nav-link {% if 'incident' in request.resolver_match.url_name %}active{% endif %}">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+    Incident Reports
+    {% if open_incidents_count %}<span class="nav-badge">{{ open_incidents_count }}</span>{% endif %}
+  </a>
+  <a href="{% url 'incident_report' %}" class="nav-link {% if request.resolver_match.url_name == 'incident_report' %}active{% endif %}">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+    Report Incident
+  </a>
+
+  <div class="sidebar-section">Vehicles</div>
+  <a href="{% url 'vehicle_list' %}" class="nav-link {% if request.resolver_match.url_name == 'vehicle_list' %}active{% endif %}">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/><path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H11a1 1 0 001-1v-1h2.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-4a1 1 0 00-.293-.707l-3-3A1 1 0 0016 5h-3V4a1 1 0 00-1-1H3z"/></svg>
+    Vehicle Registry
+  </a>
+  <a href="{% url 'vehicle_register' %}" class="nav-link {% if request.resolver_match.url_name == 'vehicle_register' %}active{% endif %}">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+    Register Vehicle
+  </a>
+
+  {% if user.profile.is_admin %}
+  <div class="sidebar-section">Administration</div>
+  <a href="{% url 'user_list' %}" class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+    Manage Users
+  </a>
+  <a href="{% url 'reports' %}" class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
+    Generate Reports
+  </a>
+  {% endif %}
+</nav>
+{% endif %}
+
+<!-- MAIN -->
+<main class="main-content">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</main>
+
+</body>
+</html>

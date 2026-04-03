@@ -1,0 +1,71 @@
+{% extends 'traffic/base.html' %}
+{% block title %}Vehicle Registry — PSU TMS{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Vehicle Registry</div>
+    <div class="page-sub">{% if is_admin %}All registered vehicles{% else %}Your registered vehicles{% endif %}</div>
+  </div>
+  <a href="{% url 'vehicle_register' %}" class="btn btn-primary">+ Register Vehicle</a>
+</div>
+
+<div class="card">
+  <form class="search-form" method="get">
+    <div class="search-input-wrap">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+      <input type="text" name="q" class="form-control" placeholder="Search by plate, make, owner..." value="{{ q }}">
+    </div>
+    <select name="status" class="form-control" style="width:150px;">
+      <option value="">All Status</option>
+      <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+      <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+      <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+    </select>
+    <button type="submit" class="btn btn-secondary">Filter</button>
+    {% if q or status_filter %}<a href="{% url 'vehicle_list' %}" class="btn btn-outline">Clear</a>{% endif %}
+  </form>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Plate No.</th>
+          <th>Vehicle</th>
+          <th>Color</th>
+          {% if is_admin %}<th>Owner</th>{% endif %}
+          <th>Category</th>
+          <th>Registered</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vehicles %}
+        <tr>
+          <td><span class="mono">{{ v.plate_number }}</span></td>
+          <td>{{ v.make }} {{ v.model }}</td>
+          <td>{{ v.color }}</td>
+          {% if is_admin %}<td>{{ v.owner.get_full_name }}</td>{% endif %}
+          <td><span class="badge badge-primary">{{ v.get_category_display }}</span></td>
+          <td class="text-sm text-muted">{{ v.registered_at|date:"d M Y" }}</td>
+          <td>
+            <span class="badge {% if v.status == 'active' %}badge-success{% elif v.status == 'pending' %}badge-warning{% else %}badge-danger{% endif %}">
+              {{ v.get_status_display }}
+            </span>
+          </td>
+          <td><a href="{% url 'vehicle_detail' v.pk %}" class="btn btn-outline btn-sm">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8">
+          <div class="empty-state">
+            <div class="empty-state-icon">🚗</div>
+            <h3>No vehicles found</h3>
+            <p>{% if q %}No results match your search.{% else %}No vehicles registered yet.{% endif %}</p>
+          </div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

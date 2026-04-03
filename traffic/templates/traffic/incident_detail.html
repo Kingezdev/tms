@@ -1,0 +1,91 @@
+{% extends 'traffic/base.html' %}
+{% block title %}Incident #{{ incident.pk }} — PSU TMS{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Incident #{{ incident.pk }}</div>
+    <div class="page-sub">{{ incident.get_incident_type_display }} — {{ incident.get_location_display }}</div>
+  </div>
+  <a href="{% url 'incident_list' %}" class="btn btn-outline">← Back</a>
+</div>
+
+<div class="card-grid-2">
+  <div class="card mb-0">
+    <div class="card-title">Incident Information</div>
+    <div class="detail-row"><span class="detail-label">Incident ID</span><span class="detail-value text-muted">#{{ incident.pk }}</span></div>
+    <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">{{ incident.get_incident_type_display }}</span></div>
+    <div class="detail-row"><span class="detail-label">Location</span><span class="detail-value">{{ incident.get_location_display }}</span></div>
+    <div class="detail-row">
+      <span class="detail-label">Priority</span>
+      <span class="detail-value">
+        <span class="badge {% if incident.priority == 'emergency' %}badge-danger{% elif incident.priority == 'high' %}badge-warning{% else %}badge-gray{% endif %}">
+          {{ incident.get_priority_display }}
+        </span>
+      </span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Status</span>
+      <span class="detail-value">
+        <span class="badge {% if incident.status == 'open' %}badge-danger{% elif incident.status == 'pending' %}badge-warning{% else %}badge-success{% endif %}">
+          {{ incident.get_status_display }}
+        </span>
+      </span>
+    </div>
+    <div class="detail-row"><span class="detail-label">Vehicle Plate</span><span class="detail-value mono">{{ incident.vehicle_plate|default:"—" }}</span></div>
+    <div class="detail-row"><span class="detail-label">Reported By</span><span class="detail-value">{{ incident.reported_by.get_full_name }}</span></div>
+    <div class="detail-row"><span class="detail-label">Reported At</span><span class="detail-value text-muted">{{ incident.reported_at|date:"d M Y, H:i" }}</span></div>
+    {% if incident.resolved_at %}
+    <div class="detail-row"><span class="detail-label">Resolved At</span><span class="detail-value text-muted">{{ incident.resolved_at|date:"d M Y, H:i" }}</span></div>
+    {% endif %}
+
+    <div style="margin-top:16px;">
+      <div class="form-label" style="margin-bottom:6px;">Description</div>
+      <div style="background:#f7f8fc;border-radius:8px;padding:12px 14px;font-size:13.5px;line-height:1.7;color:var(--text);">
+        {{ incident.description }}
+      </div>
+    </div>
+
+    {% if incident.admin_note %}
+    <div style="margin-top:12px;">
+      <div class="form-label" style="margin-bottom:6px;">Admin Note</div>
+      <div style="background:var(--info-bg);border-radius:8px;padding:12px 14px;font-size:13.5px;color:var(--info);">
+        {{ incident.admin_note }}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if is_admin %}
+  <div class="card mb-0">
+    <div class="card-title">Update Incident</div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-control">
+          {% for val, label in incident.STATUS_CHOICES %}
+          <option value="{{ val }}" {% if incident.status == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Admin Note</label>
+        <textarea name="admin_note" class="form-control" placeholder="Add a note about actions taken or resolution...">{{ incident.admin_note }}</textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Update Incident</button>
+    </form>
+  </div>
+  {% else %}
+  <div class="card mb-0">
+    <div class="card-title">Reporter Details</div>
+    <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">{{ incident.reported_by.get_full_name }}</span></div>
+    <div class="detail-row"><span class="detail-label">Username</span><span class="detail-value">{{ incident.reported_by.username }}</span></div>
+    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">{{ incident.reported_by.email }}</span></div>
+    {% if incident.reported_by.profile %}
+    <div class="detail-row"><span class="detail-label">Role</span><span class="detail-value">{{ incident.reported_by.profile.get_role_display }}</span></div>
+    <div class="detail-row"><span class="detail-label">Department</span><span class="detail-value">{{ incident.reported_by.profile.department|default:"—" }}</span></div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

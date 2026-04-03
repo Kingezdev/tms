@@ -1,0 +1,130 @@
+{% extends 'traffic/base.html' %}
+{% block title %}Reports — PSU TMS{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Generate Reports</div>
+    <div class="page-sub">System-wide traffic management statistics and summaries</div>
+  </div>
+</div>
+
+<!-- Overview Stats -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon">🚗</div>
+    <div class="stat-label">Total Vehicles</div>
+    <div class="stat-value">{{ total_vehicles }}</div>
+    <div class="stat-sub">{{ active_vehicles }} active · {{ pending_vehicles }} pending</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📋</div>
+    <div class="stat-label">Total Incidents</div>
+    <div class="stat-value">{{ total_incidents }}</div>
+    <div class="stat-sub">{{ open_incidents }} open · {{ resolved_incidents }} resolved</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">👤</div>
+    <div class="stat-label">Registered Users</div>
+    <div class="stat-value">{{ total_users }}</div>
+    <div class="stat-sub">All roles combined</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📊</div>
+    <div class="stat-label">Resolution Rate</div>
+    <div class="stat-value" style="color:var(--success);">
+      {% if total_incidents %}{% widthratio resolved_incidents total_incidents 100 %}%{% else %}0%{% endif %}
+    </div>
+    <div class="stat-sub">Incidents resolved</div>
+  </div>
+</div>
+
+<div class="card-grid-2">
+  <!-- Incidents by Type -->
+  <div class="card mb-0">
+    <div class="card-title">Incidents by Type</div>
+    {% if incident_by_type %}
+      {% for row in incident_by_type %}
+      <div style="margin-bottom:14px;">
+        <div class="flex-between text-sm" style="margin-bottom:5px;">
+          <span>{{ row.incident_type|title|cut:"_" }}</span>
+          <span class="text-muted">{{ row.count }}</span>
+        </div>
+        <div class="progress">
+          <div class="progress-fill" style="width:{% if total_incidents %}{% widthratio row.count total_incidents 100 %}{% else %}0{% endif %}%;background:var(--accent);"></div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state"><p>No incident data yet.</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Incidents by Location -->
+  <div class="card mb-0">
+    <div class="card-title">Incidents by Location</div>
+    {% if incident_by_location %}
+      {% for row in incident_by_location %}
+      <div style="margin-bottom:14px;">
+        <div class="flex-between text-sm" style="margin-bottom:5px;">
+          <span>{{ row.location|title|cut:"_" }}</span>
+          <span class="text-muted">{{ row.count }}</span>
+        </div>
+        <div class="progress">
+          <div class="progress-fill" style="width:{% if total_incidents %}{% widthratio row.count total_incidents 100 %}{% else %}0{% endif %}%;background:var(--primary);"></div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state"><p>No location data yet.</p></div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Vehicles by Category -->
+<div class="card" style="margin-top:20px;">
+  <div class="card-title">Vehicles by Category</div>
+  {% if vehicles_by_category %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Category</th><th>Count</th><th>Distribution</th></tr></thead>
+      <tbody>
+        {% for row in vehicles_by_category %}
+        <tr>
+          <td>{{ row.category|title|cut:"_" }}</td>
+          <td>{{ row.count }}</td>
+          <td style="width:40%;">
+            <div class="progress" style="width:200px;">
+              <div class="progress-fill" style="width:{% if total_vehicles %}{% widthratio row.count total_vehicles 100 %}{% else %}0{% endif %}%;background:var(--success);"></div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><p>No vehicle data yet.</p></div>
+  {% endif %}
+</div>
+
+<!-- Recent Admin Actions -->
+<div class="card" style="margin-top:20px;">
+  <div class="card-title">Recent Administrative Actions</div>
+  {% if recent_actions %}
+  <ul class="timeline">
+    {% for act in recent_actions %}
+    <li class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-time">{{ act.performed_at|date:"d M" }}</div>
+      <div>
+        <div class="tl-title">{{ act.get_action_display }}</div>
+        <div class="tl-sub">{{ act.description }} — by {{ act.admin.get_full_name }}</div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty-state"><p>No admin actions recorded yet.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

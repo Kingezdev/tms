@@ -1,0 +1,22 @@
+services:
+  # Web Service
+  - type: web
+    name: tms-traffic
+    env: python
+    plan: free
+    buildCommand: "python build.sh"
+    startCommand: "gunicorn tms.wsgi:application"
+    autoDeploy: true
+    
+    # Environment variables
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.1
+      - key: DJANGO_SETTINGS_MODULE
+        value: tms.settings
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
