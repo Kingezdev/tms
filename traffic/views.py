@@ -10,6 +10,22 @@ from .forms import (RegisterForm, VehicleForm, IncidentReportForm,
                     ResolveIncidentForm, VehicleStatusForm, UserProfileForm)
 
 
+def landing_page(request):
+    """Public landing page - accessible without login"""
+    total_vehicles = Vehicle.objects.count()
+    total_incidents = IncidentReport.objects.count()
+    total_users = User.objects.count()
+    recent_incidents = IncidentReport.objects.select_related('reported_by').order_by('-reported_at')[:3]
+    
+    context = {
+        'total_vehicles': total_vehicles,
+        'total_incidents': total_incidents, 
+        'total_users': total_users,
+        'recent_incidents': recent_incidents,
+    }
+    return render(request, 'traffic/landing.html', context)
+
+
 # ─── Helper decorator ────────────────────────────────────────
 def admin_required(view_func):
     def wrapper(request, *args, **kwargs):
